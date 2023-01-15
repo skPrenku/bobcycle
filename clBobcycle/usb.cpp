@@ -75,7 +75,7 @@ std::string displayDisks() {
 	std::stringstream ss;
 	if (listDrives(activeDisks) == 0)
 	{
-		printf("Reading Drives failed, ERROR CODE: %d", GetLastError());
+		//printf("Reading Drives failed, ERROR CODE: %d", GetLastError());
 	}
 	else {
 		
