@@ -32,4 +32,4 @@ struct disks
 bool listDrives(int& totalDisks);
 
 
-void displayDisks();
+std::string displayDisks();
