@@ -1,4 +1,5 @@
 #include "network.h"
+#include "packet.h"
 
 
 wsaWrapper::wsaWrapper() {
@@ -55,6 +56,32 @@ int network::_start_Server( short PORT) {
     }
     else {
         printf("Server started listening on port %d\n", PORT);
+    }
+
+    //test socket to send/recv data
+   
+    int recBytes = 0;
+    int clAddrSize = sizeof(clAddr);
+   
+
+
+    std::cout << "waiting\n";
+    while (true) {
+       
+        cliSOCKET = accept(srvSOCKET, (sockaddr*)&clAddr, &clAddrSize);
+        if (cliSOCKET == INVALID_SOCKET) {
+            printf("Error accepting\n");
+        }
+        else {
+            std::cout << "Client accepted: \n";
+            for (int i = 0; i < 100; i++) {
+               
+                recvPacket(cliSOCKET);
+
+            }
+
+        }
+
     }
     //accepting loop
     return 0;
