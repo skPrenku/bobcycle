@@ -1,67 +1,108 @@
+#pragma once
+
 #define _CRT_SECURE_NO_WARNINGS
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
-#pragma once
 #include <WinSock2.h>
 #include <iostream>
+#define CMD_BUFFER 4
 
 
 
-struct Packet {
-    enum class Type : std::int16_t {
-		txt_data, 
-		clip_data, 
-		hw_data, 
-		snd_data, 
-		img_data, 
-		vid_data, 
-		ft_data 
+namespace Packet {
+	enum class Type : std::uint16_t {
+
+		clip_data,
+		hw_data,
+		snd_data,
+		img_data,
+		vid_data,
+		mouse_data,
+		ft_data
 	};
 
-	Type type = {};
-    std::unique_ptr<char[]> buffer;
-    size_t size = {};
-};
 
-inline Packet makePacket(const std::string& text , Packet::Type textType) {
-	Packet packet{ textType, std::make_unique<char[]>(text.size()), text.size() };
-	memcpy(packet.buffer.get(), text.data(), text.size());
-	return packet;
+	/*
+	sendPacket() return codes
+	-successful  returns 0
+	-empty buffer returns -1
+	else returns an error code from WSAGetlastError()
+	*/
+	inline int  sendPacket(const std::string& packetBody, Packet::Type packetType, SOCKET srvSocket) {
+
+		if (packetBody.empty())
+			return -1;
+
+		int iRes = 0;
+		char packetHdr[4] = { 'b','o','b',(char)packetType};
+		std::uint32_t packetSize = htonl(packetBody.size());
+
+		//char* packet = (char*)malloc(packetBody.length());
+		auto packet = std::make_unique<char[]>(packetBody.size());
+
+		iRes = send(srvSocket, packetHdr, sizeof(packetHdr), 0);
+		if (iRes != SOCKET_ERROR)
+			printf("pack1 sent\n");
+		else
+			return SOCKET_ERROR;
+
+		iRes = send(srvSocket, (char*)&packetSize, sizeof(packetSize), 0);
+		if (iRes != SOCKET_ERROR)
+			printf("pack2 sent\n");
+		else
+			return SOCKET_ERROR;
+
+		if (packet != NULL)
+		{
+			memcpy(packet.get(), packetBody.c_str(), packetBody.size());
+			if (packet != NULL)
+			{
+
+				iRes = send(srvSocket, packet.get(), packetBody.size(), 0);
+				if (iRes != SOCKET_ERROR)
+					printf("pack3 sent\n");
+				else
+					return SOCKET_ERROR;
+			}
+		}
+
+		return 0;
+	}
+
+	//usage 
+	//char* buffer = makePacket(Packet::Type::clip_data, data.c_str());
+
+
+	inline std::uint16_t recvPacket(SOCKET srvSocket) {
+		int iRes = 0;
+		char cmdBuffer[CMD_BUFFER];
+		Packet::Type asd;
+		iRes = recv(srvSocket, cmdBuffer, CMD_BUFFER, 0);
+		if (iRes > 0)
+		{
+			switch ((Packet::Type)cmdBuffer[3])
+			{
+			case Packet::Type::clip_data:
+				break;
+			case Packet::Type::hw_data:
+				break;
+			case Packet::Type::snd_data:
+				break;
+			case Packet::Type::img_data:
+				break;
+			case Packet::Type::vid_data:
+				break;
+			case Packet::Type::mouse_data:
+				break;
+			case Packet::Type::ft_data:
+				break;
+			default:
+				break;
+			}
+		}
+
+	}
 }
 
-inline Packet makePacketFromSound(const char* data, size_t size) {
-	Packet packet{ Packet::Type::snd_data, std::make_unique<char[]>(size), size };
-	memcpy(packet.buffer.get(), data, size);
-	return packet;
-}
 
-inline Packet makePacketFromImage(const char* data, size_t size) {
-	Packet packet{ Packet::Type::img_data, std::make_unique<char[]>(size), size };
-	memcpy(packet.buffer.get(), data, size);
-	return packet;
-}
 
-inline void sendPacket(SOCKET s, const Packet& packet) {
-	std::uint16_t type = static_cast<std::uint16_t>(htons((short)packet.type));
-	std::uint32_t size = static_cast<std::uint32_t>(htonl(packet.size));
-	send(s, (char*)&type, sizeof(type), 0);
-	send(s, (char*)&size, sizeof(size), 0);
-	send(s, packet.buffer.get(), packet.size, 0);
-}
-
-inline Packet recvPacket(SOCKET s) {
-	Packet packet;
-
-	std::uint16_t type;
-	recv(s, (char*) &type, sizeof(type), 0);
-	packet.type = static_cast<Packet::Type>(ntohs(type));
-
-	std::uint32_t size;
-	recv(s, (char*)&size, sizeof(size), 0);
-	packet.size = static_cast<std::uint32_t>(ntohl(size));
-
-	auto buffer = std::make_unique<char[]>(packet.size);
-	recv(s, packet.buffer.get(), packet.size, 0);
-	std::swap(buffer, packet.buffer);
-
-	return packet;
-}
+	

@@ -1,5 +1,7 @@
 #pragma once
+
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
+
 #include <WinSock2.h>
 #pragma comment(lib,"Ws2_32.lib")
 
@@ -22,5 +24,6 @@ namespace network {
 	int _sendHWSpecs();
 }
 
+//convert dns to ip [return ip as string]
 std::string getIPv4(std::string dns);
 

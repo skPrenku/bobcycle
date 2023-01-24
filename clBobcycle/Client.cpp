@@ -1,11 +1,6 @@
 #include "Client.h"
-#include <WinSock2.h>
 #include "usb.h"
 #include "network.h"
-
-
-
-
 
 Client::Client() {
 
@@ -19,7 +14,8 @@ Client::Client() {
     iRes = GetComputerNameA((LPSTR)&pcName, (LPDWORD)&pcNameSize);
     if (iRes)
     {
-        computerName = pcName;
+       this->computerName = pcName;
+  
     }
         //  printf("Error getting PC name");
 
@@ -27,7 +23,7 @@ Client::Client() {
   
     if (iRes)
     {
-        userName = usrName;
+        this->userName = usrName;
     }
 
 

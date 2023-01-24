@@ -1,9 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
-
+#include "Client.h"
 #include "packet.h"
-
+#include "usb.h"
 #include "audio.h"
-
+#include "network.h"
 using namespace std;
 
 
@@ -14,15 +14,18 @@ int main()
 
 	//audio::liveStream();
 
-	Packet test =
+	//Packet test =
 	
-	makePacket("sdf",Packet::Type::clip_data);
+	//makePacket("sdf",Packet::Type::clip_data);
 
-	cout << test.buffer;
+	//cout << test.buffer;
 
+	//wsaWrapper wsa;
+	std::cout << "started client\n";
+	network::_connect("localhost", 27015);
 
-
-
+	//Client cl;
+	
 
 
 

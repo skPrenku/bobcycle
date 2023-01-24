@@ -80,7 +80,7 @@ std::string displayDisks() {
 	else {
 		
 
-		ss << "Total Drives found: %d", activeDisks , "\n";
+		ss << "Total Drives found: "<< activeDisks << "\n";
 
 		for (int i = 0; i < activeDisks; i++)
 		{
