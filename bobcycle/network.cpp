@@ -68,19 +68,12 @@ int network::_start_Server( short PORT) {
     std::cout << "waiting\n";
     while (true) {
        
-        cliSOCKET = accept(srvSOCKET, (sockaddr*)&clAddr, &clAddrSize);
-        if (cliSOCKET == INVALID_SOCKET) {
-            printf("Error accepting\n");
-        }
-        else {
-            std::cout << "Client accepted: \n";
-            for (int i = 0; i < 100; i++) {
-               
-                recvPacket(cliSOCKET);
-
-            }
-
-        }
+       /*
+       Loop accept clients and add them to the clientList
+       manage multiple clients/sockets via select()
+       sendPacket()
+       recvPacket()
+       */
 
     }
     //accepting loop
