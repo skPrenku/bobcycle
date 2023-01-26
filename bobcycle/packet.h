@@ -12,10 +12,10 @@
 
 #include <list>
 
-  static  std::list<struct Client> clientList;
 
 
-struct Packet {
+
+namespace Packet {
 	enum class Type : std::int16_t {
 		clip_data,
 		hw_data,
@@ -26,11 +26,21 @@ struct Packet {
 		ft_data
 	};	
 
-
 };
 
 
+inline int sendPacket(SOCKET clSocket, Packet::Type cmd) {
 
+	int iRes = 0;
+	std::uint16_t packetType = htons(static_cast<std::uint16_t>(cmd));
+	iRes = send(clSocket, (char*)&packetType, sizeof(packetType), 0);
+	if (iRes == SOCKET_ERROR)
+	{
+		return WSAGetLastError();
+	}
+
+	return 0;
+}
 
 
 inline int recvPacket(SOCKET clSocket) {
@@ -39,25 +49,25 @@ inline int recvPacket(SOCKET clSocket) {
 	std::uint32_t bufferSize;
 
 
-	iRes = recv(clSocket, bufferHdr, sizeof(bufferHdr), 0);
+	iRes = recv(clSocket, bufferHdr, sizeof(bufferHdr), 0); //recive the header/ if header protocol is = 4bytes -> [b][o][b][packet::type], continue
 	if (iRes > 0 || bufferHdr == "bob")
 	{
 		switch ((Packet::Type)bufferHdr[3])
 		{
 		case Packet::Type::clip_data:
 		{
-			iRes = recv(clSocket, (char*)&bufferSize, sizeof(bufferSize), 0);
+			iRes = recv(clSocket, (char*)&bufferSize, sizeof(bufferSize), 0); //recive the size for the command to follow , we need the size to dynamically allocate memory
 			if (iRes > 0) {
 				
 
 				char* bufferPacket = new char[ntohl(bufferSize)];
-				iRes = recv(clSocket, bufferPacket, bufferSize, 0);
+				iRes = recv(clSocket, bufferPacket, bufferSize, 0); //finally recive the command 
 				if (iRes > 0)
 				{
 					printf("\nClients Clipboard: %s\n", bufferPacket);
 				}
 
-				delete[]bufferPacket;
+				delete[]bufferPacket; //delete the pointer
 
 			}
 		}
