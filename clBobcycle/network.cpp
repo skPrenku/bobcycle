@@ -85,16 +85,16 @@ int network::_connect(std::string dns, short PORT)
             }
        
 
-                ret = connect(srvSOCKET, (sockaddr*)&srvAddr, sizeof(srvAddr));
+             ret = connect(srvSOCKET, (sockaddr*)&srvAddr, sizeof(srvAddr));
                 
-                if (ret == SOCKET_ERROR)
-                {
+            if (ret == SOCKET_ERROR)
+             {
                     printf("ERR: %d\n", WSAGetLastError());
                     Sleep(RETRY_TIME); //reconnect in 5seconds see "common.h"
                     closesocket(srvSOCKET);
                     goto re_connecting;
-                }
-                else {
+             }
+             else {
                     printf("Connected");
 
                     //send machine specs/info on client connect
@@ -105,7 +105,7 @@ int network::_connect(std::string dns, short PORT)
                         Packet::recvPacket(srvSOCKET);
                         //-> need to add threads to manage multiple tasks
                     }
-                }
+             }
 
 
 
